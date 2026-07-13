@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -72,45 +72,47 @@ public class BonusItem : Item
         }
     }
 
+    private static List<Cell> _reusableExplodeList = new List<Cell>();
+
     private void ExplodeBomb()
     {
-        List<Cell> list = new List<Cell>();
-        if (Cell.NeighbourBottom) list.Add(Cell.NeighbourBottom);
-        if (Cell.NeighbourUp) list.Add(Cell.NeighbourUp);
+        _reusableExplodeList.Clear();
+        if (Cell.NeighbourBottom) _reusableExplodeList.Add(Cell.NeighbourBottom);
+        if (Cell.NeighbourUp) _reusableExplodeList.Add(Cell.NeighbourUp);
         if (Cell.NeighbourLeft)
         {
-            list.Add(Cell.NeighbourLeft);
+            _reusableExplodeList.Add(Cell.NeighbourLeft);
             if (Cell.NeighbourLeft.NeighbourUp)
             {
-                list.Add(Cell.NeighbourLeft.NeighbourUp);
+                _reusableExplodeList.Add(Cell.NeighbourLeft.NeighbourUp);
             }
             if (Cell.NeighbourLeft.NeighbourBottom)
             {
-                list.Add(Cell.NeighbourLeft.NeighbourBottom);
+                _reusableExplodeList.Add(Cell.NeighbourLeft.NeighbourBottom);
             }
         }
         if (Cell.NeighbourRight)
         {
-            list.Add(Cell.NeighbourRight);
+            _reusableExplodeList.Add(Cell.NeighbourRight);
             if (Cell.NeighbourRight.NeighbourUp)
             {
-                list.Add(Cell.NeighbourRight.NeighbourUp);
+                _reusableExplodeList.Add(Cell.NeighbourRight.NeighbourUp);
             }
             if (Cell.NeighbourRight.NeighbourBottom)
             {
-                list.Add(Cell.NeighbourRight.NeighbourBottom);
+                _reusableExplodeList.Add(Cell.NeighbourRight.NeighbourBottom);
             }
         }
 
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < _reusableExplodeList.Count; i++)
         {
-            list[i].ExplodeItem();
+            _reusableExplodeList[i].ExplodeItem();
         }
     }
 
     private void ExplodeVerticalLine()
     {
-        List<Cell> list = new List<Cell>();
+        _reusableExplodeList.Clear();
 
         Cell newcell = Cell;
         while (true)
@@ -118,7 +120,7 @@ public class BonusItem : Item
             Cell next = newcell.NeighbourUp;
             if (next == null) break;
 
-            list.Add(next);
+            _reusableExplodeList.Add(next);
             newcell = next;
         }
 
@@ -128,20 +130,20 @@ public class BonusItem : Item
             Cell next = newcell.NeighbourBottom;
             if (next == null) break;
 
-            list.Add(next);
+            _reusableExplodeList.Add(next);
             newcell = next;
         }
 
 
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < _reusableExplodeList.Count; i++)
         {
-            list[i].ExplodeItem();
+            _reusableExplodeList[i].ExplodeItem();
         }
     }
 
     private void ExplodeHorizontalLine()
     {
-        List<Cell> list = new List<Cell>();
+        _reusableExplodeList.Clear();
 
         Cell newcell = Cell;
         while (true)
@@ -149,7 +151,7 @@ public class BonusItem : Item
             Cell next = newcell.NeighbourRight;
             if (next == null) break;
 
-            list.Add(next);
+            _reusableExplodeList.Add(next);
             newcell = next;
         }
 
@@ -159,14 +161,14 @@ public class BonusItem : Item
             Cell next = newcell.NeighbourLeft;
             if (next == null) break;
 
-            list.Add(next);
+            _reusableExplodeList.Add(next);
             newcell = next;
         }
 
 
-        for (int i = 0; i < list.Count; i++)
+        for (int i = 0; i < _reusableExplodeList.Count; i++)
         {
-            list[i].ExplodeItem();
+            _reusableExplodeList[i].ExplodeItem();
         }
 
     }
