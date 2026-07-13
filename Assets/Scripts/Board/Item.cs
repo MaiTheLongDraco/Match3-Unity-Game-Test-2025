@@ -18,7 +18,7 @@ public class Item
 
         if (!string.IsNullOrEmpty(prefabname))
         {
-            GameObject prefab = Resources.Load<GameObject>(prefabname);
+            GameObject prefab = ResourceCache.GetPrefab(prefabname);
 
             if (prefab)
             {

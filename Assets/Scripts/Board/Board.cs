@@ -43,7 +43,7 @@ public class Board
     {
         Vector3 origin = new Vector3(-boardSizeX * 0.5f + 0.5f, -boardSizeY * 0.5f + 0.5f, 0f);
         
-        GameObject prefabBG = Resources.Load<GameObject>(Constants.PREFAB_CELL_BACKGROUND);
+        GameObject prefabBG = ResourceCache.GetPrefab(Constants.PREFAB_CELL_BACKGROUND);
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
