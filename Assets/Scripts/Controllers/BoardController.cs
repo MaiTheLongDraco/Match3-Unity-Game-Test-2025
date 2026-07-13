@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +30,9 @@ public class BoardController : MonoBehaviour
     private bool m_hintIsShown;
 
     private bool m_gameOver;
+
+    private float _dragCheckInterval = 0.05f;
+    private float _lastDragCheck;
 
     public void StartGame(GameManager gameManager, GameSettings gameSettings)
     {
@@ -87,11 +90,11 @@ public class BoardController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
-            var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
+            Collider2D hit = Physics2D.OverlapPoint(m_cam.ScreenToWorldPoint(Input.mousePosition));
+            if (hit != null)
             {
                 m_isDragging = true;
-                m_hitCollider = hit.collider;
+                m_hitCollider = hit;
             }
         }
 
@@ -102,31 +105,35 @@ public class BoardController : MonoBehaviour
 
         if (Input.GetMouseButton(0) && m_isDragging)
         {
-            var hit = Physics2D.Raycast(m_cam.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
-            if (hit.collider != null)
+            if (Time.time - _lastDragCheck >= _dragCheckInterval)
             {
-                if (m_hitCollider != null && m_hitCollider != hit.collider)
+                _lastDragCheck = Time.time;
+                Collider2D hit = Physics2D.OverlapPoint(m_cam.ScreenToWorldPoint(Input.mousePosition));
+                if (hit != null)
                 {
-                    StopHints();
-
-                    Cell c1 = m_hitCollider.GetComponent<Cell>();
-                    Cell c2 = hit.collider.GetComponent<Cell>();
-                    if (AreItemsNeighbor(c1, c2))
+                    if (m_hitCollider != null && m_hitCollider != hit)
                     {
-                        IsBusy = true;
-                        SetSortingLayer(c1, c2);
-                        m_board.Swap(c1, c2, () =>
-                        {
-                            FindMatchesAndCollapse(c1, c2);
-                        });
+                        StopHints();
 
-                        ResetRayCast();
+                        Cell c1 = m_hitCollider.GetComponent<Cell>();
+                        Cell c2 = hit.GetComponent<Cell>();
+                        if (AreItemsNeighbor(c1, c2))
+                        {
+                            IsBusy = true;
+                            SetSortingLayer(c1, c2);
+                            m_board.Swap(c1, c2, () =>
+                            {
+                                FindMatchesAndCollapse(c1, c2);
+                            });
+
+                            ResetRayCast();
+                        }
                     }
                 }
-            }
-            else
-            {
-                ResetRayCast();
+                else
+                {
+                    ResetRayCast();
+                }
             }
         }
     }
