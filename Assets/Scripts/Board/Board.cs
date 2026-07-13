@@ -37,6 +37,7 @@ public class Board
         m_cells = new Cell[boardSizeX, boardSizeY];
 
         CreateBoard();
+        PrewarmPool();
     }
 
     private void CreateBoard()
@@ -71,6 +72,30 @@ public class Board
             }
         }
 
+    }
+
+    /// <summary>
+    /// Pre-instantiate các Item View vào pool ngay sau khi tạo board.
+    /// Dựa trên board size để tính số lượng hợp lý, tránh auto-expand lag ở frame đầu.
+    /// </summary>
+    private void PrewarmPool()
+    {
+        int boardSize = boardSizeX * boardSizeY;
+
+        // Phân bổ đều cho 7 loại NormalItem + buffer 2 để hấp thụ combo matches
+        int countPerNormalType = Mathf.CeilToInt((float)boardSize / 7f) + 2;
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_ONE,   countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_TWO,   countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_THREE, countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_FOUR,  countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_FIVE,  countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_SIX,   countPerNormalType);
+        ViewPool.Prewarm(Constants.PREFAB_NORMAL_TYPE_SEVEN, countPerNormalType);
+
+        // BonusItem: xuất hiện ít hơn, prewarm ít
+        ViewPool.Prewarm(Constants.PREFAB_BONUS_HORIZONTAL, 2);
+        ViewPool.Prewarm(Constants.PREFAB_BONUS_VERTICAL,   2);
+        ViewPool.Prewarm(Constants.PREFAB_BONUS_BOMB,       2);
     }
 
     internal void Fill()

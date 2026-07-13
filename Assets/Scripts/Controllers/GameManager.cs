@@ -1,4 +1,4 @@
-﻿using DG.Tweening;
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -50,6 +50,11 @@ public class GameManager : MonoBehaviour
         State = eStateGame.SETUP;
 
         m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
+
+        // Tạo pool root ẩn — phải gọi trước mọi thao tác ViewPool.Get/Prewarm
+        GameObject poolRootGo = new GameObject("[ViewPool_Root]");
+        GameObject.DontDestroyOnLoad(poolRootGo);
+        ViewPool.SetPoolRoot(poolRootGo.transform);
 
         m_uiMenu = FindObjectOfType<UIMainManager>();
         m_uiMenu.Setup(this);

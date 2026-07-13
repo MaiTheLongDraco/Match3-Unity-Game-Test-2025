@@ -11,6 +11,8 @@ public class Item
 
     public Transform View { get; private set; }
 
+    // Lưu prefab key để có thể Return đúng pool khi object bị huỷ
+    private string _cachedPrefabName;
 
     public virtual void SetView()
     {
@@ -18,11 +20,11 @@ public class Item
 
         if (!string.IsNullOrEmpty(prefabname))
         {
-            GameObject prefab = ResourceCache.GetPrefab(prefabname);
-
-            if (prefab)
+            GameObject go = ViewPool.Get(prefabname);
+            if (go != null)
             {
-                View = GameObject.Instantiate(prefab).transform;
+                _cachedPrefabName = prefabname;
+                View = go.transform;
             }
         }
     }
@@ -99,13 +101,17 @@ public class Item
     {
         if (View)
         {
-            View.DOScale(0.1f, 0.1f).OnComplete(
-                () =>
-                {
-                    GameObject.Destroy(View.gameObject);
-                    View = null;
-                }
-                );
+            // Capture reference trước khi null hoá View để tránh stale closure bug.
+            // View = null ngay lập tức để các lệnh gọi khác (Clear, StopHint)
+            // không tương tác với object đang trong animation.
+            Transform viewRef   = View;
+            string    poolKey   = _cachedPrefabName;
+            View = null;
+
+            viewRef.DOScale(0.1f, 0.1f).OnComplete(() =>
+            {
+                ViewPool.Return(poolKey, viewRef.gameObject);
+            });
         }
     }
 
@@ -133,7 +139,8 @@ public class Item
 
         if (View)
         {
-            GameObject.Destroy(View.gameObject);
+            // Return về pool ngay (không có animation) — DOKill được gọi bên trong Return
+            ViewPool.Return(_cachedPrefabName, View.gameObject);
             View = null;
         }
     }
