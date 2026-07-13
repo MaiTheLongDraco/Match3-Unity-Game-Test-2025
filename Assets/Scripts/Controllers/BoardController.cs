@@ -161,10 +161,14 @@ public class BoardController : MonoBehaviour
             List<Cell> cells1 = GetMatches(cell1);
             List<Cell> cells2 = GetMatches(cell2);
 
-            List<Cell> matches = new List<Cell>();
-            matches.AddRange(cells1);
-            matches.AddRange(cells2);
-            matches = matches.Distinct().ToList();
+            List<Cell> matches = new List<Cell>(cells1);
+            for (int i = 0; i < cells2.Count; i++)
+            {
+                if (!matches.Contains(cells2[i]))
+                {
+                    matches.Add(cells2[i]);
+                }
+            }
 
             if (matches.Count < m_gameSettings.MatchesMin)
             {
@@ -221,7 +225,15 @@ public class BoardController : MonoBehaviour
             listVert.Clear();
         }
 
-        return listHor.Concat(listVert).Distinct().ToList();
+        List<Cell> result = new List<Cell>(listHor);
+        for (int i = 0; i < listVert.Count; i++)
+        {
+            if (!result.Contains(listVert[i]))
+            {
+                result.Add(listVert[i]);
+            }
+        }
+        return result;
     }
 
     private void CollapseMatches(List<Cell> matches, Cell cellEnd)

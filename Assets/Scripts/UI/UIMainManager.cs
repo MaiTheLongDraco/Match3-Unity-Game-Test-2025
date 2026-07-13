@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,7 +90,15 @@ public class UIMainManager : MonoBehaviour
 
     internal Text GetLevelConditionView()
     {
-        UIPanelGame game = m_menuList.Where(x => x is UIPanelGame).Cast<UIPanelGame>().FirstOrDefault();
+        UIPanelGame game = null;
+        for (int i = 0; i < m_menuList.Length; i++)
+        {
+            if (m_menuList[i] is UIPanelGame)
+            {
+                game = m_menuList[i] as UIPanelGame;
+                break;
+            }
+        }
         if (game)
         {
             return game.LevelConditionView;

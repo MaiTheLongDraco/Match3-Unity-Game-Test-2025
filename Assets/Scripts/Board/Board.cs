@@ -322,23 +322,19 @@ public class Board
     {
         if (matches == null || matches.Count < m_matchMin) return eMatchDirection.NONE;
 
-        var listH = matches.Where(x => x.BoardX == matches[0].BoardX).ToList();
-        if (listH.Count == matches.Count)
+        bool allSameX = true, allSameY = true;
+        int firstX = matches[0].BoardX, firstY = matches[0].BoardY;
+        
+        for (int i = 1; i < matches.Count; i++)
         {
-            return eMatchDirection.VERTICAL;
+            if (matches[i].BoardX != firstX) allSameX = false;
+            if (matches[i].BoardY != firstY) allSameY = false;
+            if (!allSameX && !allSameY) break;
         }
 
-        var listV = matches.Where(x => x.BoardY == matches[0].BoardY).ToList();
-        if (listV.Count == matches.Count)
-        {
-            return eMatchDirection.HORIZONTAL;
-        }
-
-        if (matches.Count > 5)
-        {
-            return eMatchDirection.ALL;
-        }
-
+        if (allSameX) return eMatchDirection.VERTICAL;
+        if (allSameY) return eMatchDirection.HORIZONTAL;
+        if (matches.Count > 5) return eMatchDirection.ALL;
         return eMatchDirection.NONE;
     }
 
@@ -375,7 +371,15 @@ public class Board
     {
         var dir = GetMatchDirection(matches);
 
-        var bonus = matches.Where(x => x.Item is BonusItem).FirstOrDefault();
+        Cell bonus = null;
+        for (int i = 0; i < matches.Count; i++)
+        {
+            if (matches[i].Item is BonusItem)
+            {
+                bonus = matches[i];
+                break;
+            }
+        }
         if(bonus == null)
         {
             return matches;
