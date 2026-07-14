@@ -41,12 +41,16 @@ public class GameManager : MonoBehaviour
 
     private BoardController m_boardController;
 
-    private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
 
+    [SerializeField]
+    private UIMainManager m_uiMainManager;
+
     private void Awake()
     {
+        ServiceLocator.Register<GameManager>(this);
+
         State = eStateGame.SETUP;
 
         m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
@@ -55,14 +59,17 @@ public class GameManager : MonoBehaviour
         GameObject poolRootGo = new GameObject("[ViewPool_Root]");
         GameObject.DontDestroyOnLoad(poolRootGo);
         ViewPool.SetPoolRoot(poolRootGo.transform);
+    }
 
-        m_uiMenu = FindObjectOfType<UIMainManager>();
-        m_uiMenu.Setup(this);
+    private void OnDestroy()
+    {
+        ServiceLocator.Unregister<GameManager>();
     }
 
     void Start()
     {
         State = eStateGame.MAIN_MENU;
+        m_uiMainManager= ServiceLocator.Resolve<UIMainManager>();
     }
 
     // Update is called once per frame
@@ -94,12 +101,12 @@ public class GameManager : MonoBehaviour
         if (mode == eLevelMode.MOVES)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelMoves>();
-            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), m_boardController);
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMainManager.GetLevelConditionView(), m_boardController);
         }
         else if (mode == eLevelMode.TIMER)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelTime>();
-            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMainManager.GetLevelConditionView(), this);
         }
 
         m_levelCondition.ConditionCompleteEvent += GameOver;

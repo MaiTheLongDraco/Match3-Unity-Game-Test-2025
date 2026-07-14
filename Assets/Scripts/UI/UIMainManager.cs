@@ -8,16 +8,25 @@ using UnityEngine.UI;
 public class UIMainManager : MonoBehaviour
 {
     private IMenu[] m_menuList;
-
+    [SerializeField]
     private GameManager m_gameManager;
 
     private void Awake()
     {
+        ServiceLocator.Register<UIMainManager>(this);
         m_menuList = GetComponentsInChildren<IMenu>(true);
+    }
+
+    private void OnDestroy()
+    {
+        ServiceLocator.Unregister<UIMainManager>();
     }
 
     void Start()
     {
+        m_gameManager = ServiceLocator.Resolve<GameManager>();
+        m_gameManager.StateChangedAction += OnGameStateChange;
+
         for (int i = 0; i < m_menuList.Length; i++)
         {
             m_menuList[i].Setup(this);
@@ -45,11 +54,7 @@ public class UIMainManager : MonoBehaviour
         }
     }
 
-    internal void Setup(GameManager gameManager)
-    {
-        m_gameManager = gameManager;
-        m_gameManager.StateChangedAction += OnGameStateChange;
-    }
+
 
     private void OnGameStateChange(GameManager.eStateGame state)
     {

@@ -10,9 +10,9 @@ public class BoardController : MonoBehaviour
     public event Action OnMoveEvent = delegate { };
 
     public bool IsBusy { get; private set; }
-
+    [SerializeField]
     private Board m_board;
-
+    [SerializeField]
     private GameManager m_gameManager;
 
     private bool m_isDragging;
@@ -20,9 +20,9 @@ public class BoardController : MonoBehaviour
     private Camera m_cam;
 
     private Collider2D m_hitCollider;
-
+    [SerializeField]
     private GameSettings m_gameSettings;
-
+    [SerializeField]
     private List<Cell> m_potentialMatch;
 
     private float m_timeAfterFill;
