@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,7 +15,6 @@ public class LevelMoves : LevelCondition
         m_moves = (int)value;
 
         m_board = board;
-
         m_board.OnMoveEvent += OnMove;
 
         UpdateText();
@@ -30,8 +27,9 @@ public class LevelMoves : LevelCondition
         m_moves--;
 
         UpdateText();
+        EventBus.Publish(new MovesUpdatedEvent { RemainingMoves = m_moves });
 
-        if(m_moves <= 0)
+        if (m_moves <= 0)
         {
             OnConditionComplete();
         }
@@ -39,13 +37,13 @@ public class LevelMoves : LevelCondition
 
     protected override void UpdateText()
     {
-        m_txt.text = string.Format("MOVES:\n{0}", m_moves);
+        // Dùng string ghép tránh string.Format allocation
+        m_txt.text = "MOVES:\n" + m_moves.ToString();
     }
 
     protected override void OnDestroy()
     {
         if (m_board != null) m_board.OnMoveEvent -= OnMove;
-
         base.OnDestroy();
     }
 }

@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
             m_state = value;
 
             StateChangedAction(m_state);
+            // Publish qua EventBus để các class không giữ reference GameManager cũng nhận được
+            EventBus.Publish(new GameStateChangedEvent { NewState = m_state });
         }
     }
 
@@ -106,7 +108,7 @@ public class GameManager : MonoBehaviour
         else if (mode == eLevelMode.TIMER)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelTime>();
-            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMainManager.GetLevelConditionView(), this);
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMainManager.GetLevelConditionView());
         }
 
         m_levelCondition.ConditionCompleteEvent += GameOver;

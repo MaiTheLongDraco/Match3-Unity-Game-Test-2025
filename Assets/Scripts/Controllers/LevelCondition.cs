@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,16 +10,13 @@ public class LevelCondition : MonoBehaviour
 
     protected bool m_conditionCompleted = false;
 
+    // Setup chuẩn — cho cả LevelTime lẫn LevelMoves dùng chung
     public virtual void Setup(float value, Text txt)
     {
         m_txt = txt;
     }
 
-    public virtual void Setup(float value, Text txt, GameManager mngr)
-    {
-        m_txt = txt;
-    }
-
+    // Override cho LevelMoves
     public virtual void Setup(float value, Text txt, BoardController board)
     {
         m_txt = txt;
@@ -33,11 +28,11 @@ public class LevelCondition : MonoBehaviour
     {
         m_conditionCompleted = true;
 
+        // Publish event global để các class khác có thể lắng nghe nếu cần
+        EventBus.Publish(new LevelConditionCompletedEvent());
+
         ConditionCompleteEvent();
     }
 
-    protected virtual void OnDestroy()
-    {
-
-    }
+    protected virtual void OnDestroy() { }
 }
