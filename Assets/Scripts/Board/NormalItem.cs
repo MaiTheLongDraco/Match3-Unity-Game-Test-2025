@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -58,5 +58,24 @@ public class NormalItem : Item
         NormalItem it = other as NormalItem;
 
         return it != null && it.ItemType == this.ItemType;
+    }
+
+    public override void ApplySkin()
+    {
+        base.ApplySkin();
+        
+        try 
+        {
+            SkinManager skinManager = ServiceLocator.Resolve<SkinManager>();
+            Sprite sprite = skinManager.GetSpriteForNormalItem(ItemType);
+            if (sprite != null)
+            {
+                SetSprite(sprite);
+            }
+        }
+        catch 
+        {
+            // Ignore if SkinManager is not registered or not in scene
+        }
     }
 }

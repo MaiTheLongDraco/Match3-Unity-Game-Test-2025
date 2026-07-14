@@ -92,7 +92,10 @@ public class UIMainManager : MonoBehaviour
             }            
         }
     }
-
+    public void ShowMenuPublic<T>() where T : IMenu
+    {
+        ShowMenu<T>();
+    }
     internal Text GetLevelConditionView()
     {
         UIPanelGame game = null;

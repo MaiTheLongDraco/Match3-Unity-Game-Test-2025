@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,4 +15,11 @@ public class GameSettings : ScriptableObject
     public float LevelTime = 30f;
 
     public float TimeForHint = 5f;
+    public eGameTheme GameTheme = eGameTheme.Food;
+}
+
+public enum eGameTheme
+{
+    Food,
+    Fish,
 }

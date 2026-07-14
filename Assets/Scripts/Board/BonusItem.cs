@@ -48,6 +48,25 @@ public class BonusItem : Item
         return it != null && it.ItemType == this.ItemType;
     }
 
+    public override void ApplySkin()
+    {
+        base.ApplySkin();
+
+        try
+        {
+            SkinManager skinManager = ServiceLocator.Resolve<SkinManager>();
+            Sprite sprite = skinManager.GetSpriteForBonusItem(ItemType);
+            if (sprite != null)
+            {
+                SetSprite(sprite);
+            }
+        }
+        catch
+        {
+            // Ignore if SkinManager is not registered or not in scene
+        }
+    }
+
     internal override void ExplodeView()
     {
         ActivateBonus();

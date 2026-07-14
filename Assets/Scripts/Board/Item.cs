@@ -25,6 +25,24 @@ public class Item
             {
                 _cachedPrefabName = prefabname;
                 View = go.transform;
+                ApplySkin();
+            }
+        }
+    }
+
+    public virtual void ApplySkin()
+    {
+        // Subclasses can override this to fetch correct sprite from SkinManager
+    }
+
+    public void SetSprite(Sprite sprite)
+    {
+        if (View != null && sprite != null)
+        {
+            SpriteRenderer sr = View.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = sprite;
             }
         }
     }

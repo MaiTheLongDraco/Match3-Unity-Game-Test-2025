@@ -44,6 +44,12 @@ public class Board
 
         CreateBoard();
         PrewarmPool();
+
+        try
+        {
+            ServiceLocator.Resolve<SkinManager>().RegisterBoard(this);
+        }
+        catch { }
     }
 
     private void CreateBoard()
@@ -694,6 +700,12 @@ public class Board
 
     public void Clear()
     {
+        try
+        {
+            ServiceLocator.Resolve<SkinManager>().UnregisterBoard();
+        }
+        catch { }
+
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
@@ -703,6 +715,21 @@ public class Board
 
                 GameObject.Destroy(cell.gameObject);
                 m_cells[x, y] = null;
+            }
+        }
+    }
+
+    public void ReskinAllItems()
+    {
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                Cell cell = m_cells[x, y];
+                if (cell != null && cell.Item != null)
+                {
+                    cell.Item.ApplySkin();
+                }
             }
         }
     }

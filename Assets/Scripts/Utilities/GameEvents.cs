@@ -25,3 +25,9 @@ public struct MovesUpdatedEvent
 public struct LevelConditionCompletedEvent
 {
 }
+
+// Phát khi người dùng thay đổi theme
+public struct ThemeChangedEvent
+{
+    public eGameTheme NewTheme;
+}
