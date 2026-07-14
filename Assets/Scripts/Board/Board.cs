@@ -174,8 +174,29 @@ public class Board
     }
 
 
+    // ─── Reusable buffers cho FillGapsWithNewItems (zero-alloc) ─────────────────
+    private static readonly NormalItem.eNormalType[] _allNormalTypes =
+        (NormalItem.eNormalType[])System.Enum.GetValues(typeof(NormalItem.eNormalType));
+    private readonly int[] _typeCounts = new int[7]; // 7 loại NormalItem
+    private readonly NormalItem.eNormalType[] _candidateBuffer = new NormalItem.eNormalType[7];
+
     internal void FillGapsWithNewItems()
     {
+        // Bước 1: Đếm số lượng từng loại NormalItem hiện có trên board
+        System.Array.Clear(_typeCounts, 0, _typeCounts.Length);
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                NormalItem ni = m_cells[x, y].Item as NormalItem;
+                if (ni != null)
+                {
+                    _typeCounts[(int)ni.ItemType]++;
+                }
+            }
+        }
+
+        // Bước 2: Duyệt các ô trống, sinh item mới
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
@@ -183,15 +204,82 @@ public class Board
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
 
-                NormalItem item = new NormalItem();
+                // Bước 2a: Thu thập type của 4 ô xung quanh để loại trừ
+                _reusableTypeList.Clear();
+                AddNeighbourType(cell.NeighbourUp);
+                AddNeighbourType(cell.NeighbourBottom);
+                AddNeighbourType(cell.NeighbourLeft);
+                AddNeighbourType(cell.NeighbourRight);
 
-                item.SetType(Utils.GetRandomNormalType());
+                // Bước 2b: Lọc ra các type hợp lệ (không trùng neighbour)
+                int candidateCount = 0;
+                for (int i = 0; i < _allNormalTypes.Length; i++)
+                {
+                    bool excluded = false;
+                    for (int j = 0; j < _reusableTypeList.Count; j++)
+                    {
+                        if (_allNormalTypes[i] == _reusableTypeList[j])
+                        {
+                            excluded = true;
+                            break;
+                        }
+                    }
+                    if (!excluded)
+                    {
+                        _candidateBuffer[candidateCount++] = _allNormalTypes[i];
+                    }
+                }
+
+                // Fallback: nếu tất cả 7 type đều bị loại (gần như bất khả thi), dùng random
+                if (candidateCount == 0)
+                {
+                    _candidateBuffer[0] = Utils.GetRandomNormalType();
+                    candidateCount = 1;
+                }
+
+                // Bước 2c: Trong các candidate hợp lệ, chọn type có số lượng ÍT NHẤT trên board
+                NormalItem.eNormalType chosenType = _candidateBuffer[0];
+                int minCount = _typeCounts[(int)chosenType];
+
+                for (int i = 1; i < candidateCount; i++)
+                {
+                    int c = _typeCounts[(int)_candidateBuffer[i]];
+                    if (c < minCount)
+                    {
+                        minCount = c;
+                        chosenType = _candidateBuffer[i];
+                    }
+                    else if (c == minCount)
+                    {
+                        // Nếu bằng nhau thì random 50/50 để tránh bias luôn chọn type đầu tiên
+                        if (UnityEngine.Random.value > 0.5f)
+                        {
+                            chosenType = _candidateBuffer[i];
+                        }
+                    }
+                }
+
+                // Bước 3: Tạo item mới và cập nhật count
+                NormalItem item = new NormalItem();
+                item.SetType(chosenType);
                 item.SetView();
                 item.SetViewRoot(m_root);
 
                 cell.Assign(item);
                 cell.ApplyItemPosition(true);
+
+                _typeCounts[(int)chosenType]++;
             }
+        }
+    }
+
+    private void AddNeighbourType(Cell neighbour)
+    {
+        if (neighbour == null) return;
+        NormalItem ni = neighbour.Item as NormalItem;
+        if (ni != null)
+        {
+            _reusableTypeList.Add(ni.ItemType);
         }
     }
 
