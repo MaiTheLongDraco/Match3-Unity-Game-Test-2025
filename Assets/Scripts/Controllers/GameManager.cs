@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     }
 
     private eStateGame m_state;
+    private eLevelMode m_currentMode;
     public eStateGame State
     {
         get { return m_state; }
@@ -97,6 +98,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadLevel(eLevelMode mode)
     {
+        m_currentMode = mode;
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
         m_boardController.StartGame(this, m_gameSettings);
 
@@ -129,6 +131,19 @@ public class GameManager : MonoBehaviour
             Destroy(m_boardController.gameObject);
             m_boardController = null;
         }
+
+        if (m_levelCondition != null)
+        {
+            m_levelCondition.ConditionCompleteEvent -= GameOver;
+            Destroy(m_levelCondition);
+            m_levelCondition = null;
+        }
+    }
+
+    public void RestartLevel()
+    {
+        ClearLevel();
+        LoadLevel(m_currentMode);
     }
 
     private IEnumerator WaitBoardController()
