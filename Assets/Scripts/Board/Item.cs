@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 [Serializable]
 public class Item
@@ -58,7 +58,7 @@ public class Item
     {
         if (View == null) return;
 
-        View.DOMove(Cell.transform.position, 0.2f);
+        AnimationManager.Instance?.MoveToCell(View, Cell.transform.position);
     }
 
     public void SetViewPosition(Vector3 pos)
@@ -105,9 +105,7 @@ public class Item
     {
         if (View == null) return;
 
-        Vector3 scale = View.localScale;
-        View.localScale = Vector3.one * 0.1f;
-        View.DOScale(scale, 0.1f);
+        AnimationManager.Instance?.PlayAppear(View);
     }
 
     internal virtual bool IsSameType(Item other)
@@ -115,41 +113,42 @@ public class Item
         return false;
     }
 
+    internal virtual UniTask ExplodeViewAsync()
+    {
+        if (!View) return UniTask.CompletedTask;
+
+        // Capture reference trước khi null hoá View để tránh stale closure bug.
+        Transform viewRef = View;
+        string    poolKey = _cachedPrefabName;
+        View = null;
+
+        return AnimationManager.Instance != null
+            ? AnimationManager.Instance.PlayExplodeAsync(viewRef, poolKey)
+            : UniTask.CompletedTask;
+    }
+
+    // Backward-compatible fire-and-forget wrapper
     internal virtual void ExplodeView()
     {
-        if (View)
-        {
-            // Capture reference trước khi null hoá View để tránh stale closure bug.
-            // View = null ngay lập tức để các lệnh gọi khác (Clear, StopHint)
-            // không tương tác với object đang trong animation.
-            Transform viewRef   = View;
-            string    poolKey   = _cachedPrefabName;
-            View = null;
-
-            viewRef.DOScale(0.1f, 0.1f).OnComplete(() =>
-            {
-                ViewPool.Return(poolKey, viewRef.gameObject);
-            });
-        }
+        ExplodeViewAsync().Forget();
     }
 
 
 
     internal void AnimateForHint()
     {
-        if (View)
-        {
-            View.DOPunchScale(View.localScale * 0.1f, 0.1f).SetLoops(-1);
-        }
+        if (View == null) return;
+        _hintOriginalScale = View.localScale;
+        AnimationManager.Instance?.PlayHintLoop(View);
     }
 
     internal void StopAnimateForHint()
     {
-        if (View)
-        {
-            View.DOKill();
-        }
+        if (View == null) return;
+        AnimationManager.Instance?.StopHint(View, _hintOriginalScale);
     }
+
+    private Vector3 _hintOriginalScale = Vector3.one;
 
     internal void Clear()
     {

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class Board
 {
@@ -304,8 +305,20 @@ public class Board
         cell2.Free();
         cell2.Assign(item);
 
-        item.View.DOMove(cell2.transform.position, 0.3f);
-        item2.View.DOMove(cell1.transform.position, 0.3f).OnComplete(() => { if (callback != null) callback(); });
+        // SwapAsync fire-and-forget, callback được gọi sau khi cả 2 hoàn tất
+        SwapWithCallbackAsync(item, cell2, item2, cell1, callback).Forget();
+    }
+
+    private async UniTask SwapWithCallbackAsync(
+        Item item, Cell target1, Item item2, Cell target2, Action callback)
+    {
+        if (AnimationManager.Instance != null)
+        {
+            await AnimationManager.Instance.SwapAsync(
+                item.View,  target1.transform.position,
+                item2.View, target2.transform.position);
+        }
+        callback?.Invoke();
     }
 
     public List<Cell> GetHorizontalMatches(Cell cell)
@@ -781,7 +794,7 @@ public class Board
                 cell.Free();
 
                 holder.Assign(item);
-                item.View.DOMove(holder.transform.position, 0.3f);
+                AnimationManager.Instance?.MoveToCell(item.View, holder.transform.position);
             }
         }
     }

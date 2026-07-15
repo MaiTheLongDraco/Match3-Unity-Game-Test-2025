@@ -86,13 +86,13 @@ public class GameManager : MonoBehaviour
     {
         State = state;
 
-        if(State == eStateGame.PAUSE)
+        if (State == eStateGame.PAUSE)
         {
-            DOTween.PauseAll();
+            AnimationManager.Instance?.PauseAll();
         }
         else
         {
-            DOTween.PlayAll();
+            AnimationManager.Instance?.ResumeAll();
         }
     }
 
