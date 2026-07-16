@@ -113,7 +113,10 @@ public class AnimationManager : MonoBehaviour
         view.DOKill(false);
         return view.DOScale(originalScale, _appearDuration)
                    .SetEase(Ease.OutBack)
-                   .ToUniTask();
+                   .ToUniTask().ContinueWith(() =>
+                   {
+                       view.localScale = Vector3.one;
+                   });
     }
 
     /// <summary>

@@ -105,7 +105,7 @@ public class Item
     {
         if (View == null) return;
 
-        AnimationManager.Instance?.PlayAppear(View);
+        AnimationManager.Instance?.PlayAppearAsync(View).Forget();
     }
 
     internal virtual bool IsSameType(Item other)
