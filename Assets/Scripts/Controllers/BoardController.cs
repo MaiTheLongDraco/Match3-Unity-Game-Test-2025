@@ -34,6 +34,14 @@ public class BoardController : MonoBehaviour
     private float _dragCheckInterval = 0.05f;
     private float _lastDragCheck;
 
+    // ─── Reusable buffers (Fix GC Spike #1) ───────────────────────────────────
+    private readonly List<Cell> _reusableMatchResult = new List<Cell>(16);
+    private readonly List<Cell> _reusableGetMatchResult = new List<Cell>(16);
+
+    // ─── Cached yield instructions (Fix GC Spike #3) ─────────────────────────
+    private static readonly WaitForSeconds _wait02 = new WaitForSeconds(0.2f);
+    private static readonly WaitForSeconds _wait03 = new WaitForSeconds(0.3f);
+
     public void StartGame(GameManager gameManager, GameSettings gameSettings)
     {
         m_gameManager = gameManager;
@@ -158,19 +166,27 @@ public class BoardController : MonoBehaviour
         }
         else
         {
-            List<Cell> cells1 = GetMatches(cell1);
-            List<Cell> cells2 = GetMatches(cell2);
+            // Sử dụng _reusableMatchResult thay vì new List (Zero GC)
+            _reusableMatchResult.Clear();
 
-            List<Cell> matches = new List<Cell>(cells1);
-            for (int i = 0; i < cells2.Count; i++)
+            // Lấy matches của cell1
+            GetMatches(cell1, _reusableGetMatchResult);
+            for (int i = 0; i < _reusableGetMatchResult.Count; i++)
             {
-                if (!matches.Contains(cells2[i]))
+                _reusableMatchResult.Add(_reusableGetMatchResult[i]);
+            }
+
+            // Lấy matches của cell2, gộp vào (không trùng)
+            GetMatches(cell2, _reusableGetMatchResult);
+            for (int i = 0; i < _reusableGetMatchResult.Count; i++)
+            {
+                if (!_reusableMatchResult.Contains(_reusableGetMatchResult[i]))
                 {
-                    matches.Add(cells2[i]);
+                    _reusableMatchResult.Add(_reusableGetMatchResult[i]);
                 }
             }
 
-            if (matches.Count < m_gameSettings.MatchesMin)
+            if (_reusableMatchResult.Count < m_gameSettings.MatchesMin)
             {
                 m_board.Swap(cell1, cell2, () =>
                 {
@@ -181,7 +197,7 @@ public class BoardController : MonoBehaviour
             {
                 OnMoveEvent();
 
-                CollapseMatches(matches, cell2);
+                CollapseMatches(_reusableMatchResult, cell2);
             }
         }
     }
@@ -211,29 +227,33 @@ public class BoardController : MonoBehaviour
         }
     }
 
-    private List<Cell> GetMatches(Cell cell)
+    /// <summary>
+    /// Ghi kết quả matches vào list truyền vào (Zero GC — không new List)
+    /// </summary>
+    private void GetMatches(Cell cell, List<Cell> result)
     {
+        result.Clear();
+
         List<Cell> listHor = m_board.GetHorizontalMatches(cell);
-        if (listHor.Count < m_gameSettings.MatchesMin)
+        if (listHor.Count >= m_gameSettings.MatchesMin)
         {
-            listHor.Clear();
+            for (int i = 0; i < listHor.Count; i++)
+            {
+                result.Add(listHor[i]);
+            }
         }
 
         List<Cell> listVert = m_board.GetVerticalMatches(cell);
-        if (listVert.Count < m_gameSettings.MatchesMin)
+        if (listVert.Count >= m_gameSettings.MatchesMin)
         {
-            listVert.Clear();
-        }
-
-        List<Cell> result = new List<Cell>(listHor);
-        for (int i = 0; i < listVert.Count; i++)
-        {
-            if (!result.Contains(listVert[i]))
+            for (int i = 0; i < listVert.Count; i++)
             {
-                result.Add(listVert[i]);
+                if (!result.Contains(listVert[i]))
+                {
+                    result.Add(listVert[i]);
+                }
             }
         }
-        return result;
     }
 
     private void CollapseMatches(List<Cell> matches, Cell cellEnd)
@@ -255,11 +275,11 @@ public class BoardController : MonoBehaviour
     {
         m_board.ShiftDownItems();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return _wait02;
 
         m_board.FillGapsWithNewItems();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return _wait02;
 
         FindMatchesAndCollapse();
     }
@@ -268,11 +288,11 @@ public class BoardController : MonoBehaviour
     {
         m_board.ExplodeAllItems();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return _wait02;
 
         m_board.Fill();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return _wait02;
 
         FindMatchesAndCollapse();
     }
@@ -281,7 +301,7 @@ public class BoardController : MonoBehaviour
     {
         m_board.Shuffle();
 
-        yield return new WaitForSeconds(0.3f);
+        yield return _wait03;
 
         FindMatchesAndCollapse();
     }

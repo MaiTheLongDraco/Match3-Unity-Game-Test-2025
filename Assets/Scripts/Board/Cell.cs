@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 public class Cell : MonoBehaviour
@@ -78,16 +78,25 @@ public class Cell : MonoBehaviour
 
     internal void AnimateItemForHint()
     {
-        Item.AnimateForHint();
+        if (Item != null)
+        {
+            Item.AnimateForHint();
+        }
     }
 
     internal void StopHintAnimation()
     {
-        Item.StopAnimateForHint();
+        if (Item != null)
+        {
+            Item.StopAnimateForHint();
+        }
     }
 
     internal void ApplyItemMoveToPosition()
     {
-        Item.AnimationMoveToPosition();
+        if (Item != null)
+        {
+            Item.AnimationMoveToPosition();
+        }
     }
 }

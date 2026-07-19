@@ -9,16 +9,50 @@ public class Utils
 {
     private static readonly NormalItem.eNormalType[] _allTypes = (NormalItem.eNormalType[])Enum.GetValues(typeof(NormalItem.eNormalType));
 
+    // Buffer tái sử dụng cho hàm lọc (Zero GC)
+    private static readonly NormalItem.eNormalType[] _candidateBuffer = new NormalItem.eNormalType[7];
+
     public static NormalItem.eNormalType GetRandomNormalType()
     {
         return _allTypes[URandom.Range(0, _allTypes.Length)];
     }
 
+    /// <summary>
+    /// Overload nhận List thay vì Array — tránh .ToArray() gây GC allocation
+    /// </summary>
+    public static NormalItem.eNormalType GetRandomNormalTypeExcept(List<NormalItem.eNormalType> excludeTypes)
+    {
+        int count = 0;
+        for (int i = 0; i < _allTypes.Length; i++)
+        {
+            bool excluded = false;
+            if (excludeTypes != null)
+            {
+                for (int j = 0; j < excludeTypes.Count; j++)
+                {
+                    if (_allTypes[i] == excludeTypes[j])
+                    {
+                        excluded = true;
+                        break;
+                    }
+                }
+            }
+            if (!excluded)
+            {
+                _candidateBuffer[count++] = _allTypes[i];
+            }
+        }
+
+        if (count == 0) return _allTypes[URandom.Range(0, _allTypes.Length)];
+        return _candidateBuffer[URandom.Range(0, count)];
+    }
+
+    /// <summary>
+    /// Backward-compatible overload cho code cũ
+    /// </summary>
     public static NormalItem.eNormalType GetRandomNormalTypeExcept(NormalItem.eNormalType[] types)
     {
-        // Avoid LINQ Except() and ToList()
-        // We know _allTypes is small (7 elements), so a simple array or list without LINQ is better.
-        List<NormalItem.eNormalType> list = new List<NormalItem.eNormalType>(_allTypes.Length);
+        int count = 0;
         for (int i = 0; i < _allTypes.Length; i++)
         {
             bool excluded = false;
@@ -35,11 +69,11 @@ public class Utils
             }
             if (!excluded)
             {
-                list.Add(_allTypes[i]);
+                _candidateBuffer[count++] = _allTypes[i];
             }
         }
 
-        int rnd = URandom.Range(0, list.Count);
-        return list[rnd];
+        if (count == 0) return _allTypes[URandom.Range(0, _allTypes.Length)];
+        return _candidateBuffer[URandom.Range(0, count)];
     }
 }

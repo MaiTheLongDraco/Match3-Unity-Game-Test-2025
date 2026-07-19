@@ -31,6 +31,8 @@ public class Board
     private List<Cell> _reusableVertMatchList = new List<Cell>();
     private List<Cell> _reusableFirstMatchList = new List<Cell>();
     private List<Cell> _reusablePotentialMatchesList = new List<Cell>();
+    private List<Item> _reusableShuffleList = new List<Item>();
+    private List<Cell> _reusableBonusCheckList = new List<Cell>();
 
     public Board(Transform transform, GameSettings gameSettings)
     {
@@ -139,7 +141,7 @@ public class Board
                     }
                 }
 
-                item.SetType(Utils.GetRandomNormalTypeExcept(_reusableTypeList.ToArray()));
+                item.SetType(Utils.GetRandomNormalTypeExcept(_reusableTypeList));
                 item.SetView();
                 item.SetViewRoot(m_root);
 
@@ -151,12 +153,12 @@ public class Board
 
     internal void Shuffle()
     {
-        List<Item> list = new List<Item>();
+        _reusableShuffleList.Clear();
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
-                list.Add(m_cells[x, y].Item);
+                _reusableShuffleList.Add(m_cells[x, y].Item);
                 m_cells[x, y].Free();
             }
         }
@@ -165,11 +167,11 @@ public class Board
         {
             for (int y = 0; y < boardSizeY; y++)
             {
-                int rnd = UnityEngine.Random.Range(0, list.Count);
-                m_cells[x, y].Assign(list[rnd]);
+                int rnd = UnityEngine.Random.Range(0, _reusableShuffleList.Count);
+                m_cells[x, y].Assign(_reusableShuffleList[rnd]);
                 m_cells[x, y].ApplyItemMoveToPosition();
 
-                list.RemoveAt(rnd);
+                _reusableShuffleList.RemoveAt(rnd);
             }
         }
     }
@@ -496,42 +498,42 @@ public class Board
             return matches;
         }
 
-        List<Cell> result = new List<Cell>();
+        _reusableBonusCheckList.Clear();
         switch (dir)
         {
             case eMatchDirection.HORIZONTAL:
-                foreach (var cell in matches)
+                for (int i = 0; i < matches.Count; i++)
                 {
-                    BonusItem item = cell.Item as BonusItem;
+                    BonusItem item = matches[i].Item as BonusItem;
                     if (item == null || item.ItemType == BonusItem.eBonusType.HORIZONTAL)
                     {
-                        result.Add(cell);
+                        _reusableBonusCheckList.Add(matches[i]);
                     }
                 }
                 break;
             case eMatchDirection.VERTICAL:
-                foreach (var cell in matches)
+                for (int i = 0; i < matches.Count; i++)
                 {
-                    BonusItem item = cell.Item as BonusItem;
+                    BonusItem item = matches[i].Item as BonusItem;
                     if (item == null || item.ItemType == BonusItem.eBonusType.VERTICAL)
                     {
-                        result.Add(cell);
+                        _reusableBonusCheckList.Add(matches[i]);
                     }
                 }
                 break;
             case eMatchDirection.ALL:
-                foreach (var cell in matches)
+                for (int i = 0; i < matches.Count; i++)
                 {
-                    BonusItem item = cell.Item as BonusItem;
+                    BonusItem item = matches[i].Item as BonusItem;
                     if (item == null || item.ItemType == BonusItem.eBonusType.ALL)
                     {
-                        result.Add(cell);
+                        _reusableBonusCheckList.Add(matches[i]);
                     }
                 }
                 break;
         }
 
-        return result;
+        return _reusableBonusCheckList;
     }
 
     internal List<Cell> GetPotentialMatches()
